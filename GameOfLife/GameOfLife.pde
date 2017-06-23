@@ -7,12 +7,16 @@ int cellSize = screenSize/numCells;
 float lastGenerationTime;
 float generationDeltaTime = 1000f; // 1 second
 
+int lastGridX;
+int lastGridY;
+boolean lastMousePressed = false;
+
 boolean running = false;
 
 
 void setup(){
   size(600,600);
-  
+  frameRate(60);
   cells = new boolean[numCells][numCells];
   
   //for(int x = 0; x< cells.length; x++){
@@ -41,17 +45,24 @@ void draw(){
     
     if(mousePressed){
       
+      if(!lastMousePressed){
+        updateLastGrid();
+      }
+      
       if((mouseX < screenSize && mouseX >= 0) && (mouseY < screenSize && mouseY >= 0)){
         
         if(mouseButton == LEFT){
-          cells[mouseX / cellSize][mouseY / cellSize] = true;
-          drawGeneration();
+          paintCells(true);
         }
         else if(mouseButton == RIGHT){
-          cells[mouseX / cellSize][mouseY / cellSize] = false;
-          drawGeneration();
+          paintCells(false);
         }
       }
+      
+      updateLastGrid();
+      lastMousePressed = true;
+    }else{
+      lastMousePressed = false;
     }
   }
 }
@@ -65,6 +76,54 @@ void keyPressed(){
     drawGeneration();
   }
   
+}
+
+void updateLastGrid(){
+  
+  lastGridX = mouseX / cellSize;
+  lastGridY = mouseY / cellSize;
+  
+}
+
+void paintCells(boolean alive){
+  
+  cells[mouseX / cellSize][mouseY / cellSize] = alive;
+  
+  walkGrid(mouseX / cellSize, mouseY / cellSize, lastGridX, lastGridY, alive);
+  
+  drawGeneration();
+  
+}
+
+void walkGrid(int x0, int y0, int x1, int y1, boolean alive){
+
+  
+  int dx = x1 - x0;
+  int dy = y1 - y0;
+  
+  int signX = dx > 0 ? 1 : -1, signY = dy > 0 ? 1 : -1;
+  
+  int nx = abs(dx);
+  int ny = abs(dy);
+  
+  int nextX = x0, nextY = y0;
+  
+  for(int ix = 0, iy = 0; ix < nx || iy < ny;){
+    if((0.5+ix)/nx < (0.5+iy)/ny){
+      //horizontal step
+      nextX += signX;
+      ix++;
+    }else{
+      //vertical step
+      nextY += signY;
+      iy++;
+    }
+    
+    nextX = constrain(nextX, 0, numCells-1);
+    nextY = constrain(nextY, 0, numCells-1);
+    
+    cells[nextX][nextY] = alive;
+  }
 }
 
 void drawGeneration(){
