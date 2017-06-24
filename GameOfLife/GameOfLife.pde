@@ -18,6 +18,8 @@ boolean saveFileSelected;
 String openFileText = "";
 String saveFileText = "";
 
+int currentGeneration = 0;
+
 boolean running = false;
 
 void settings(){
@@ -26,17 +28,12 @@ void settings(){
 void setup(){
   cells = new boolean[numCells][numCells];
   
-  //for(int x = 0; x< cells.length; x++){
-  //  for(int y = 0; y < cells.length; y++){
-  //    cells[x][y] = (random(0,1) > 0.5) ? true : false;
-  //  }
-  //}
-  
   lastGenerationTime = millis();
   
   background(100);
   drawGeneration();
   drawUI(false, false);
+  drawGenCounter();
 }
 
 void draw(){
@@ -119,21 +116,36 @@ void mousePressed(){
      saveFileSelected = true;
    }
    else if(overButton(0, screenSize + 96 + 20, 100, 40)){
-      clearGrid();
-      drawUI(false, false);
-      openFileSelected = false;
-      saveFileSelected = false;
+     clearGrid();
+     currentGeneration = 0;
+     drawGenCounter();
+     drawUI(false, false);
+     openFileSelected = false;
+     saveFileSelected = false;
    }
    else if(overButton(0, screenSize + 32, 170, 40)){
-      openFile(openFileText);
+     openFile(openFileText);
+     currentGeneration = 0;
+     drawGenCounter();
+     openFileSelected = false;
+     saveFileSelected = false;
    }
    else if(overButton(0, screenSize + 64 + 10, 210, 40)){
-      saveFileAs(saveFileText);
+     saveFileAs(saveFileText);
+     openFileSelected = false;
+     saveFileSelected = false;
+   }
+   else if(overButton(110, screenSize + 96 + 20, 150, 40)){
+     randomGrid();
+     currentGeneration = 0;
+     drawGenCounter();
+     openFileSelected = false;
+     saveFileSelected = false;
    }
    else{
-      drawUI(false, false);
-      openFileSelected = false;
-      saveFileSelected = false;
+     drawUI(false, false);
+     openFileSelected = false;
+     saveFileSelected = false;
    }
 }
 
@@ -144,6 +156,28 @@ boolean overButton(int x, int y, int width, int height)  {
   } else {
     return false;
   }
+}
+
+void drawGenCounter(){
+  
+  fill(100);
+  noStroke();
+  rect(300 + 200, screenSize + 96 + 20, 100, 40);
+  fill(255);
+  text("" + currentGeneration, 300 + 200, screenSize + 96 + 20, 300, 40); 
+  
+}
+
+void randomGrid(){
+  
+    for(int x = 0; x< cells.length; x++){
+      for(int y = 0; y < cells.length; y++){
+        cells[x][y] = (random(0,1) > 0.5) ? true : false;
+      }
+    }
+    
+    drawGeneration();
+    
 }
 
 void openFile(String dir){
@@ -245,6 +279,20 @@ void drawUI(boolean openFileSelected, boolean saveFileAsSelected){
     fill(0);
     textSize(32);
     text("CLEAR", 0, screenSize + 96 + 20, 300, 40);
+    
+    //RANDOM
+    fill(225);
+    rect(110, screenSize + 96 + 20, 150, 40, 5);
+    
+    fill(0);
+    textSize(32);
+    text("RANDOM", 110, screenSize + 96 + 20, 300, 40);
+    
+    //CURRENT GEN
+    
+    fill(255);
+    textSize(24);
+    text("CURRENT GEN:", 300, screenSize + 96 + 20, 300, 40);
   
 }
 
@@ -368,5 +416,8 @@ void nextGeneration(){
   }
   
   cells = nextCells;
+  currentGeneration++;
+  
+  drawGenCounter();
   
 }
