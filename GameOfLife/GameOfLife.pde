@@ -346,9 +346,9 @@ void nextGeneration(){
          }
        }
        
-       if(cells[x][y]){
+       if(!cells[x][y]){
          
-         if(numNeighbors < 2 || numNeighbors > 3){
+         if(numNeighbors != 3){
            nextCells[x][y] = false;
          }else{
            nextCells[x][y] = true;
@@ -356,10 +356,10 @@ void nextGeneration(){
          
        }else{
          
-         if(numNeighbors == 3){
-           nextCells[x][y] = true;
-         }else{
+         if(numNeighbors < 2 || numNeighbors > 3){
            nextCells[x][y] = false;
+         }else{
+           nextCells[x][y] = true;
          }
          
        }
