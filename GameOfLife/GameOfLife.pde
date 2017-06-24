@@ -1,25 +1,37 @@
+//Recommended that screenSize is divisible by 100
+final int screenSize = 800;
 
+//Performance for numCells over 100 is very CPU intensive.
+final int numCells = 100;
+final int cellSize = screenSize/numCells;
+
+//Set noStroke to true if the cellSize is too small to see with the grid outline.
+final boolean noStroke = true;
+
+//Array that holds the values of each cell in the grid. True is alive, false is dead.
 boolean[][] cells;
-int screenSize = 800;
-int numCells = 100;
-int cellSize = screenSize/numCells;
-boolean noStroke = true;
 
+//Timer variables for the running phase.
 float lastGenerationTime;
 float generationDeltaTime = 1000f; // 1 second
 
+//Variables for walking the grid, filling in lines when fps can't keep up with drawing.
 int lastGridX;
 int lastGridY;
 boolean lastMousePressed = false;
 
+//Is the input box selected?
 boolean openFileSelected;
 boolean saveFileSelected;
 
+//Saves text in input boxes.
 String openFileText = "";
 String saveFileText = "";
 
+//current generation of the game
 int currentGeneration = 0;
 
+//Is the game running automatically?
 boolean running = false;
 
 void settings(){
@@ -31,6 +43,7 @@ void setup(){
   lastGenerationTime = millis();
   
   background(100);
+  
   drawGeneration();
   drawUI(false, false);
   drawGenCounter();
@@ -57,11 +70,14 @@ void draw(){
         updateLastGrid();
       }
       
+      //If mouse is within the bounds of the grid
       if((mouseX < screenSize && mouseX >= 0) && (mouseY < screenSize && mouseY >= 0)){
         
+        //Left click switches cells to alive.
         if(mouseButton == LEFT){
           paintCells(true);
         }
+        //Right click switches cells to dead.
         else if(mouseButton == RIGHT){
           paintCells(false);
         }
@@ -69,8 +85,11 @@ void draw(){
       
       updateLastGrid();
       lastMousePressed = true;
+      
     }else{
+      
       lastMousePressed = false;
+      
     }
   }
   
@@ -84,6 +103,7 @@ void keyPressed(){
     nextGeneration();
     drawGeneration();
   }
+  //If key pressed isn't any operator keys
   else if( key != DELETE && key != SHIFT && key != CONTROL && key != ALT){
     if(openFileSelected){
       if(key == BACKSPACE && openFileText.length() > 0){
@@ -105,16 +125,19 @@ void keyPressed(){
 }
 
 void mousePressed(){
+  //Open File Selection Box
   if(overButton(175, screenSize + 32, 400, 40)){
       drawUI(true, false);
       openFileSelected = true;
       saveFileSelected = false;
     }
+    //Save File Selected Box
    else if(overButton(175 + 40, screenSize + 64 + 10, 400, 40)){
      drawUI(false, true);
      openFileSelected = false;
      saveFileSelected = true;
    }
+   //Clear Button
    else if(overButton(0, screenSize + 96 + 20, 100, 40)){
      clearGrid();
      currentGeneration = 0;
@@ -123,6 +146,7 @@ void mousePressed(){
      openFileSelected = false;
      saveFileSelected = false;
    }
+   //Open File Button
    else if(overButton(0, screenSize + 32, 170, 40)){
      openFile(openFileText);
      currentGeneration = 0;
@@ -130,11 +154,13 @@ void mousePressed(){
      openFileSelected = false;
      saveFileSelected = false;
    }
+   //Save File Button
    else if(overButton(0, screenSize + 64 + 10, 210, 40)){
      saveFileAs(saveFileText);
      openFileSelected = false;
      saveFileSelected = false;
    }
+   //Random Button
    else if(overButton(110, screenSize + 96 + 20, 150, 40)){
      randomGrid();
      currentGeneration = 0;
@@ -149,6 +175,7 @@ void mousePressed(){
    }
 }
 
+//Is the mouse currently over a button?
 boolean overButton(int x, int y, int width, int height)  {
   if (mouseX >= x && mouseX <= x+width && 
       mouseY >= y && mouseY <= y+height) {
@@ -158,6 +185,8 @@ boolean overButton(int x, int y, int width, int height)  {
   }
 }
 
+//Draws gen counter separately from the other UI elements
+//(so the whole UI doesn't flash when drawing at high speeds)
 void drawGenCounter(){
   
   fill(100);
@@ -167,7 +196,7 @@ void drawGenCounter(){
   text("" + currentGeneration, 300 + 200, screenSize + 96 + 20, 300, 40); 
   
 }
-
+//Assign random values to each cell in the grid.
 void randomGrid(){
   
     for(int x = 0; x< cells.length; x++){
@@ -179,12 +208,15 @@ void randomGrid(){
     drawGeneration();
     
 }
-
+//Open .CSV file with directory "dir".
 void openFile(String dir){
   println("OPENING FILE: " + dir);
   
   String[] lines = loadStrings(dir); 
   String text = "";
+  
+  //Read .CSV file and parse it to a string of 1's and 0's like this: "0011001011010011101" 
+  //with "|" to denote a new row.
   
   if(lines != null){
     for(String line : lines){
@@ -204,6 +236,7 @@ void openFile(String dir){
         continue;
       }
       
+      //Assign each cell to the corresponding value from the saved file.
       cells[x][y] = text.charAt(i) == '1' ? true : false;
       x++;
     }
@@ -214,6 +247,7 @@ void openFile(String dir){
   print("FINISHED OPENING " + dir);
   
 }
+//Save .CSV file to directory "dir".
 void saveFileAs(String dir){
   println("SAVING FILE: " + dir);
   
@@ -221,10 +255,12 @@ void saveFileAs(String dir){
   
   saveFile = createWriter(dir);
   
+  //Loop through each cell and add its value to the .CSV file.
   for(int y = 0; y< cells.length; y++){
     for(int x = 0; x < cells.length; x++){
       saveFile.print((cells[x][y] ? "1" : "0") + ((x < cells.length - 1) ? ", " : ""));
     }
+    //If reached end of the row, go to next line.
     saveFile.print("\n");
   }
   
@@ -234,6 +270,7 @@ void saveFileAs(String dir){
   println("FINISHED SAVING " + dir);
 }
 
+//Clear grid to all dead cells.
 void clearGrid(){
   for(int x = 0; x< cells.length; x++){
     for(int y = 0; y < cells.length; y++){
@@ -243,6 +280,7 @@ void clearGrid(){
   drawGeneration();
 }
 
+//Draw UI Elements.
 void drawUI(boolean openFileSelected, boolean saveFileAsSelected){
   
     //OPEN FILE
@@ -296,6 +334,7 @@ void drawUI(boolean openFileSelected, boolean saveFileAsSelected){
   
 }
 
+//Update last grid position of the mouse.
 void updateLastGrid(){
   
   lastGridX = mouseX / cellSize;
@@ -303,6 +342,7 @@ void updateLastGrid(){
   
 }
 
+//Paints cells between currentPosition and lastPosition of the mouse with boolean "alive"
 void paintCells(boolean alive){
   
   cells[mouseX / cellSize][mouseY / cellSize] = alive;
@@ -313,6 +353,7 @@ void paintCells(boolean alive){
   
 }
 
+//Fill all cells between lastPosition and currentPosition of the mouse.
 void walkGrid(int x0, int y0, int x1, int y1, boolean alive){
 
   
@@ -348,6 +389,7 @@ void walkGrid(int x0, int y0, int x1, int y1, boolean alive){
   }
 }
 
+//Redraw the grid.
 void drawGeneration(){
   
   
@@ -371,6 +413,7 @@ void drawGeneration(){
     }
   }
 }
+//Advance to the next generation.
 void nextGeneration(){
   
   boolean[][] nextCells = new boolean[numCells][numCells];
@@ -393,7 +436,7 @@ void nextGeneration(){
            
          }
        }
-       
+       //The 4 rules
        if(!cells[x][y]){
          
          if(numNeighbors != 3){
